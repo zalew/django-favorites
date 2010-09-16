@@ -1,8 +1,10 @@
 from django.views.generic.list_detail import object_list, object_detail
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.template import RequestContext
 from models import Favorite
+from forms import DeleteFavoriteForm
 
 
 @login_required
@@ -56,4 +58,41 @@ def favorite_list(request, model_class, **kwargs):
         model_class, request.user))
     return object_list(request, queryset, **kwargs)
 
+
+@login_required
+def delete_favorite(request, object_id, form_class=None, redirect_to=None,
+           template_name=None, extra_context=None):
+    """
+    Generic Favorite object delete view
+
+    GET: displays question to delete favorite
+    POST: deletes favorite object and returns to `redirect_to`
+
+    Default context:
+        `form` - delete form
+
+    `object_id` - required object_id (favorite pk)
+    `template_name` - default "favorites/favorite_delete.html"
+    `form_class` - default DeleteFavoriteForm
+    `redirect_to` - default set to "favorites", change it if needed
+    `extra_context` - provide extra context if needed
+    """
+
+    favorite = get_object_or_404(Favorite, pk=object_id)
+    form_class = form_class or DeleteFavoriteForm
+
+    if request.method == 'POST':
+        form = form_class(instance=favorite, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(redirect_to or 'favorites')
+    else:
+        form = form_class(instance=favorite)
+    ctx = extra_context or {}
+    ctx.update({
+        'form': form,
+    })
+
+    return render_to_response(template_name or 'favorites/favorite_delete.html',
+            RequestContext(request, ctx))
 
