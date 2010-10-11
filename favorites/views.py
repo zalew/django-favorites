@@ -28,7 +28,8 @@ def create_favorite(request, object_id, queryset, redirect_to=None,
     obj = get_object_or_404(queryset, pk=object_id)
     content_type=ContentType.objects.get_for_model(obj)
 
-    if Favorite.objects.filter(content_type=content_type, object_id=object_id):
+    if Favorite.objects.filter(content_type=content_type, object_id=object_id,\
+                              user=request.user):
         return redirect(redirect_to or 'favorites')
 
     favorite = Favorite.objects.create_favorite(obj, request.user)
@@ -78,7 +79,7 @@ def delete_favorite(request, object_id, form_class=None, redirect_to=None,
     `extra_context` - provide extra context if needed
     """
 
-    favorite = get_object_or_404(Favorite, pk=object_id)
+    favorite = get_object_or_404(Favorite, pk=object_id, user=request.user)
     form_class = form_class or DeleteFavoriteForm
 
     if request.method == 'POST':
