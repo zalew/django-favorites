@@ -5,8 +5,45 @@ from django.contrib.contenttypes.models import ContentType
 from django.template import RequestContext
 from models import Favorite
 from forms import DeleteFavoriteForm
+from django.http import HttpResponse
 
+@login_required
+def ajax_add_favorite(request):
+    """ Adds favourite returns Http codes"""
+    if request.method == "POST":
+        object_id = request.POST.get("object_id")
+        content_type=get_object_or_404(ContentType, pk=request.POST.get("content_type_id"))
+        obj = content_type.get_object_for_this_type(pk=object_id)
 
+        # check if it was created already
+        if Favorite.objects.filter(content_type=content_type, object_id=object_id,\
+                                  user=request.user):
+            # return conflict response code if already satisfied
+            return HttpResponse(status=409)
+        
+        #if not create it
+        favorite = Favorite.objects.create_favorite(obj, request.user)
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=405)
+        
+        
+@login_required
+def ajax_remove_favorite(request):
+    """ Adds favourite returns Http codes"""
+    if request.method == "POST":
+        object_id = request.POST.get("object_id")
+        content_type=get_object_or_404(ContentType,
+                                       pk=request.POST.get("content_type_id"))
+        favorite = get_object_or_404(Favorite, object_id=object_id,
+                                               content_type=content_type,
+                                               user=request.user)
+        favorite.delete()
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=405)
+    
+    
 @login_required
 def create_favorite(request, object_id, queryset, redirect_to=None,
         template_name=None, extra_context=None):
