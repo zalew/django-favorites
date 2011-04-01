@@ -1,35 +1,26 @@
 from django import template
-from django.core.urlresolvers import reverse
-from favorites.models import Favorite
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+from favorites import settings as fav_settings
+from favorites.models import Favorite
+from favorites.utils import build_message
 
 register = template.Library()
 
-@register.filter
-def is_favorite(object, user):
-    """
-    Returns True, if object is already in user`s favorite list
-    """
-    if not user or not user.is_authenticated():
-        return False
-    return Favorite.objects.favorites_for_object(object, user).count()>0
+
+@register.inclusion_tag('favorites/fav_item.html')
+def fav_item(item, user):
+    """"""
+    favs = Favorite.objects.favorites_for_object(item)
+    users = [fav.user for fav in favs]
+    count = len(users)
+    counter = build_message(count)
+    faved = False
+    message = fav_settings.FAV_ADD
+    if Favorite.objects.favorites_for_object(item, user):
+        faved = True
+        message = fav_settings.FAV_REMOVE
+    ctype = ContentType.objects.get_for_model(item)
+    return {'faved': faved, 'message': message, 'users': users, 'counter': counter, 'item': item, 'ctype': ctype }
 
 
-@register.inclusion_tag("favorites/favorite_add_remove.html")
-def add_remove_favorite(object, user):
-    favorite = None
-    content_type = ContentType.objects.get_for_model(object)
-    if user.is_authenticated():
-        favorite = Favorite.objects.favorites_for_object(object, user=user)
-        if favorite:
-            favorite = favorite[0]
-        else:
-            favorite = None
-            
-    return {"object":object,
-            "content_type": content_type,
-            "user": user,
-            "favorite":favorite}
-    
-    
-    

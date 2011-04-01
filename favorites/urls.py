@@ -1,8 +1,5 @@
 from django.conf.urls.defaults import *
-from django.views.generic.simple import direct_to_template
-from views import *
 
-urlpatterns = patterns("",
-    url(r'^add$', ajax_add_favorite, name="favorite_ajax_add"),
-    url(r'^remove$', ajax_remove_favorite, name="favorite_ajax_remove"),
+urlpatterns = patterns('',
+    url(r'^fav/(?P<ctype_id>\d+)/(?P<obj_id>\d+)/$', 'favorites.views.ajax_fav', name="ajax_fav"),        
 )

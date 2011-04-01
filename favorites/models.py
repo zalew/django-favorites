@@ -38,7 +38,7 @@ class FavoriteManager(models.Manager):
         """
         content_type = ContentType.objects.get_for_model(type(obj))
         return self.get_query_set().get(content_type=content_type,
-                                    user=user, object_id=obj.pk)
+                                        object_id=obj.pk)
     
     @classmethod
     def create_favorite(cls, content_object, user):
@@ -51,6 +51,8 @@ class FavoriteManager(models.Manager):
             )
         favorite.save()
         return favorite
+    
+    
 
 class Favorite(models.Model):
     user = models.ForeignKey(User)
