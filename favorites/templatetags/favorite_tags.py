@@ -17,9 +17,10 @@ def fav_item(item, user):
     counter = build_message(count)
     faved = False
     message = fav_settings.FAV_ADD
-    if Favorite.objects.favorites_for_object(item, user):
-        faved = True
-        message = fav_settings.FAV_REMOVE
+    if user.is_authenticated():
+        if Favorite.objects.favorites_for_object(item, user):
+            faved = True
+            message = fav_settings.FAV_REMOVE
     ctype = ContentType.objects.get_for_model(item)
     return {'faved': faved, 'message': message, 'users': users, 'counter': counter, 'item': item, 'ctype': ctype }
 
